@@ -10,14 +10,20 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    let awakenClient = AwakenClient()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        awakenClient.fetchCharacter(completion: { result in
+            switch result {
+            case .Success(let characters) :
+                for character in characters {
+                    print(character.name)
+                }
+            case .Failure(let error):
+                print(error)
+            }
+            })
     }
 
 
