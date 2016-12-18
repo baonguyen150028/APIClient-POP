@@ -8,30 +8,30 @@
 
 import Foundation
 
+
+
 enum Category: EndPoint{
-    case Character (page: Int)
-    case StarShips (page: Int)
-    case Vehicles (page: Int)
+    case Character
+    case StarShips
+    case Vehicles
 
     var baseURL: URL {
         return URL(string: "http://swapi.co/api/")!
     }
     var path: String {
         switch self {
-        case .Character(let page):
-            return "people/\(page))/"
-        case .StarShips(let page):
-            return "starships/\(page)/"
-        case .Vehicles(let page):
-            return "verhicles/\(page)/"
+        case .Character:
+            return "people/"
+        case .StarShips:
+            return "starships/"
+        case .Vehicles:
+            return "vehicles/"
         }
     }
     var request: URLRequest {
         let url = URL(string: path, relativeTo: baseURL)!
         return URLRequest(url: url)
     }
-
-
 }
 
 final class AwakenClient: APIClient {
@@ -48,21 +48,39 @@ final class AwakenClient: APIClient {
         self.init(config: URLSessionConfiguration.default)
     }
 
-    func fetchCharacter(completion: @escaping (APIResult<Character>) -> Void){
-        let request = Category.Character(page: 1).request
+    func fetchCharacter(pageURL: String? = nil, completion: @escaping (APIResult<Character>) -> Void){
+        // Check next page
+        let request: URLRequest
+        if let pageURL = pageURL {
+            let url = URL(string: pageURL)!
+            request = URLRequest(url: url)
+        } else {
+            request = Category.Character.request
+        }
         parseJSON(request: request, parse: {
-            json -> [Character]? in
-            guard let array = json["results"] as? [Any] else { return []}
-            var characters = [Character]()
+            json -> SpeciesWrapper<Character>? in
 
-            for resultDict in array {
-                if let characterDict = resultDict as? [String: Any] {
-                    if let character = Character(json: characterDict){
-                        characters.append(character)
-                    }
-                }
+            if let wrapper =  SpeciesWrapper<Character>(json: json){
+                return wrapper
+            } else {
+                return nil
             }
-            return characters
         }, completion: completion)
+
     }
+    
+    func fetchHomeForCharacter(homeURL: String, comletion: @escaping (APIResult<Planet>) -> Void){
+        guard let url = URL(string: homeURL) else { return }
+        let request = URLRequest(url: url)
+        parseJSON(request: request, parse: {
+            json -> SpeciesWrapper<Planet>? in
+            if let wrapper = SpeciesWrapper<Planet>(json: json){
+                return wrapper
+            } else {
+                return nil
+            }
+        }, completion: comletion)
+    }
+
+    
 }

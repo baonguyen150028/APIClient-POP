@@ -8,20 +8,22 @@
 
 import Foundation
 
-class Character: JSONDecodable {
-    var name: String = ""
-    var born: String = ""
-    var home: String = ""
-    var height: String = ""
-    var eye: String = ""
-    var hair: String = ""
+struct Character: JSONDecodable {
+    var name: String?
+    var born: String?
+    var home: Planet?
+    var height: String?
+    var eye: String?
+    var hair: String?
+    var homeURL: String?
 
-    required init?(json: JSON) {
+    init?(json: JSON) {
         guard   let name = json["name"] as? String,
                 let born = json["birth_year"] as? String,
                 let height = json["height"] as? String,
                 let eye = json["eye_color"] as? String,
-                let hair = json["hair_color"] as? String else {
+                let hair = json["hair_color"] as? String,
+                let homeURL = json["homeworld"] as? String else {
                 return nil
         }
         self.name = name
@@ -29,14 +31,9 @@ class Character: JSONDecodable {
         self.height = height
         self.eye = eye
         self.hair = hair
+        self.homeURL = homeURL
     }
 
-}
-//MARK: Get Home 
-extension Character {
-    func getHome() {
-
-    }
 }
 
 

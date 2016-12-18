@@ -11,8 +11,8 @@ typealias JSON = [String: Any]
 typealias JSONTaskCompletion = (JSON?,HTTPURLResponse?,Error?) -> Void
 typealias JSONTask = URLSessionDataTask
 
-enum APIResult<T>{
-    case Success([T])
+enum APIResult<T:JSONDecodable>{
+    case Success(SpeciesWrapper<T>)
     case Failure(Error)
 }
 protocol JSONDecodable {
@@ -28,10 +28,12 @@ protocol APIClient {
     var configuration: URLSessionConfiguration { get }
     var session: URLSession { get }
     func JSONTaskWithRequest(request: URLRequest, completion: @escaping JSONTaskCompletion) -> JSONTask
-    func parseJSON<T: JSONDecodable>(request: URLRequest, parse: @escaping (JSON) -> [T]?, completion: @escaping (APIResult<T>) -> Void)
+    func parseJSON<T:JSONDecodable>(request: URLRequest, parse: @escaping (JSON) -> SpeciesWrapper<T>?, completion: @escaping (APIResult<T>) -> Void)
 }
+
 extension APIClient {
     func JSONTaskWithRequest(request: URLRequest, completion:  @escaping JSONTaskCompletion) -> JSONTask {
+
         let task = session.dataTask(with: request, completionHandler: {
             data, response, error in
             guard let HTTPResponse = response as? HTTPURLResponse else{
@@ -58,7 +60,7 @@ extension APIClient {
         })
         return task
     }
-    func parseJSON<T>(request: URLRequest, parse: @escaping (JSON) -> [T]?, completion: @escaping (APIResult<T>) -> Void) {
+    func parseJSON<T>(request: URLRequest, parse: @escaping (JSON) -> SpeciesWrapper<T>?, completion: @escaping (APIResult<T>) -> Void) {
         let task = JSONTaskWithRequest(request: request, completion: {
             json, response, error in
             DispatchQueue.main.async {
